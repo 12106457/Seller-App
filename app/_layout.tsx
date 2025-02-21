@@ -1,59 +1,55 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+// App.js
+import { AuthProvider, useAuth } from '@/context/authContext';
+import { ProfileContextProvider } from '@/context/profileContext';
+import { SpinnerProvider } from '@/context/spinnerContext';
+import { Stack, Tabs } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { useFonts } from 'expo-font';
+import  ToastManager  from 'toastify-react-native';
 
-import { useColorScheme } from '@/components/useColorScheme';
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
+export default function App() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
-  }, [error]);
+    if (loaded) SplashScreen.hideAsync();
+  }, [error, loaded]);
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+  if (!loaded) return null;
 
-  if (!loaded) {
-    return null;
-  }
-
-  return <RootLayoutNav />;
+  return (
+    <AuthProvider>
+      <ProfileContextProvider>
+        <SpinnerProvider>
+          <ToastManager showCloseIcon={false} showProgressBar={false} />
+          <RootLayoutNav />
+        </SpinnerProvider>
+      </ProfileContextProvider>
+    </AuthProvider>
+  );
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const { isAuthenticated } = useAuth();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    <Stack screenOptions={{headerShown:false}}>
+      {isAuthenticated ? (
+        <Tabs>
+          <Tabs.Screen
+            name="(tabs)"
+            options={{ headerShown: false }}
+          />
+        </Tabs>
+      ) : (
+        <>
+          <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/register" options={{ headerShown: false }} />
+        </>
+      )}
+    </Stack>
   );
 }

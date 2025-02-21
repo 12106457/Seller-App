@@ -1,25 +1,25 @@
 {
   "expo": {
-    "name": "ownerApplication",
-    "slug": "ownerApplication",
+    "name": "SmartMart Business",
+    "slug": "SmartMart Business",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/splashlogo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/splashlogo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FDAA48"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/splashlogo.png",
+        "backgroundColor": "#FDAA48"
       }
     },
     "web": {
@@ -28,8 +28,15 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
-    ],
+        "expo-router",
+        [
+          "expo-image-picker",
+          {
+            "photosPermission": "Select and upload images.",
+            "cameraPermission": "Allow to access your camera."
+          }
+        ]
+      ],
     "experiments": {
       "typedRoutes": true
     }
