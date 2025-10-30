@@ -45,6 +45,7 @@ const Products = () => {
       .then((data: productResponse) => {
         if (data.status) {
           setProductList(data.data);
+          console.log(data.data);
           setFilteredProducts(data.data); // Initially set filtered products to all products
         } else {
           Alert.alert(data.message);
@@ -97,7 +98,15 @@ const Products = () => {
       <View style={styles.productDetails}>
         <Text style={styles.productName}>{item.name}</Text>
         <Text style={styles.productDescription}>{item.description}</Text>
-        <Text style={styles.productPrice}>Price: ₹{item.price}</Text>
+        <Text style={styles.productPrice}>
+        Price: ₹{item.price}
+        {item.originalPrice ? (
+          <Text>
+            {' / '}
+            <Text style={styles.originalPrice}>₹{item.originalPrice}</Text>
+          </Text>
+        ) : null}
+      </Text>
         <Text style={styles.productStock}>Stock: {item.stock}</Text>
       </View>
     </TouchableOpacity>
@@ -150,7 +159,7 @@ const Products = () => {
           contentContainerStyle={filteredProducts.length === 0 ? styles.emptyContainer : {}}
         />
         {
-          seeProduct && (
+          seeProduct && productData && (
             <ProductDetailsComponent data={productData} setOpen={setSeeProduct} handleUpdateAPI={updateProductApi} />
           )
         }
@@ -268,4 +277,9 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
   },
+  originalPrice: {
+  textDecorationLine: 'line-through',
+  color: '#888',
+  marginLeft: 4,
+}
 });

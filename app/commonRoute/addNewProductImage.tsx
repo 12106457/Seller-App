@@ -143,9 +143,9 @@ const addNewProduct = () => {
   };
 
   //-----------------------search product code---------------------
-  const [searchText, setSearchText] = useState<string|undefined>();
+  const [searchText, setSearchText] = useState<string>("");
   const [productList, setProductList] = useState<searchProductData[]>([]);
-
+console.log("searchText:",searchText);
   useEffect(() => {
    if(selectedOption===2){
     fetchSeatchProducts();
@@ -155,7 +155,7 @@ const addNewProduct = () => {
   const fetchSeatchProducts = () => {
     setLoading(true);
     fetch(
-      `${process.env.EXPO_PUBLIC_API_BASE_URL}/shop/productSearch?search=${searchText}`,
+      `${process.env.EXPO_PUBLIC_API_BASE_URL}/shop/productSearch?search=${searchText==undefined?"":searchText}`,
       {
         method: "GET",
         headers: {

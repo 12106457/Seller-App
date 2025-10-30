@@ -6,25 +6,63 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Animated
 } from "react-native";
 import { Tabs, useRouter } from "expo-router";
 import { FontAwesome, FontAwesome6, MaterialIcons } from "@expo/vector-icons";
 import Colors from "@/constants/Colors";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { ProfileContext } from "@/context/profileContext";
 import { LinearGradient } from 'expo-linear-gradient';
 import { dashboardData, dashboardResponse } from "@/models/common";
 import ToastManager, { Toast } from "toastify-react-native";
 import { Image } from 'expo-image'
+import { useFocusEffect } from "@react-navigation/native";
 
 // Inside your dashboard screen component
+const orderStatusMap: Record<string, keyof dashboardData> = {
+  Pending: "pendingOrders",
+  "In Process": "processedOrders",
+  Delivered: "deliveredOrders",
+  Cancelled: "cancelledOrders",
+};
 const Dashboard = () => {
   const { profileData, ShopDetails } = useContext(ProfileContext);
-  const [dashboardData,setDashboardData]=useState<dashboardData>()
+  const [dashboardData,setDashboardData]=useState<dashboardData>();
+  const [orderDetailsOpen,setOrderDetailsOpen]=useState(false);
   const route = useRouter();
-  useEffect(()=>{
-    FetchDashboardData();
-  },[])
+  const fadeAnims = useRef(["Pending", "In Process", "Delivered", "Cancelled"].map(() => new Animated.Value(0))).current;
+
+useEffect(() => {
+  if (orderDetailsOpen) {
+    fadeAnims.forEach((anim, index) => {
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 500,
+        delay: index * 200, // Staggered animation (0ms, 300ms, 600ms, etc.)
+        useNativeDriver: true,
+      }).start();
+    });
+  } else {
+    fadeAnims.forEach((anim) => {
+      Animated.timing(anim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    });
+  }
+}, [orderDetailsOpen]);
+useFocusEffect(
+  useCallback(() => {
+    FetchDashboardData(); // Fetch data every time screen is focused
+
+    return () => {
+      // Optional cleanup if needed
+      setOrderDetailsOpen(false);
+    };
+  }, [])
+);
   const FetchDashboardData = () => {
       // setLoading(true);
         fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL}/shop/dashboard/${ShopDetails?._id}`, {
@@ -40,7 +78,7 @@ const Dashboard = () => {
           .then((data:dashboardResponse) => {
             if (data.status) {
               setDashboardData(data.data);
-              console.log("data");
+              console.log("data:",data);
               // setLoading(false);
             } else {
               Toast.error(data.message);
@@ -125,7 +163,7 @@ const Dashboard = () => {
         </View>
 
         <View style={[styles.infoContainer,{marginTop:30}]}>
-        <TouchableOpacity style={styles.infoBox}>
+        <TouchableOpacity style={styles.infoBox} onPress={()=>setOrderDetailsOpen(!orderDetailsOpen)}>
                 <View style={{flexDirection:"row", justifyContent:"space-between", alignItems:"center", padding:10}}>
                   <Text style={[styles.infoTxt,{width:70}]}>Total Orders</Text>
                   <Image
@@ -134,9 +172,9 @@ const Dashboard = () => {
                 contentFit="contain"
                 />
                 </View>
-                <View style={{flexDirection:"row",justifyContent:"flex-start",alignItems:"center",paddingHorizontal:20}}>
+                <View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center",paddingHorizontal:20}}>
                       <Text style={styles.infoValue}>{dashboardData?.totalMonthlyOrders}</Text>
-                      {/* <FontAwesome6 name="arrow-right-long" size={24} color="white" /> */}
+                      <FontAwesome6 name="arrow-right-long" size={24} color="white" />
                 </View>
             </TouchableOpacity>
 
@@ -149,14 +187,28 @@ const Dashboard = () => {
                 contentFit="contain"
                 />
                 </View>
-                <View style={{flexDirection:"row",justifyContent:"flex-start",alignItems:"center",paddingHorizontal:20}}>
-                      <Text style={styles.infoValue}>{dashboardData?.totalMonthlyAmount}</Text>
+                <View style={{flexDirection:"row",justifyContent:"flex-start",alignItems:"center",paddingHorizontal:5}}>
+                      <Text style={[styles.infoValue,{fontSize:24,marginTop:10,textAlign:"center",flex:1}]}>{dashboardData?.totalMonthlyAmount.toFixed(1)}</Text>
                       {/* <FontAwesome6 name="arrow-right-long" size={24} color="white" /> */}
                 </View>
             </TouchableOpacity>
             
             
         </View>
+        {orderDetailsOpen && (
+      <View style={[styles.infoContainer,{marginTop:20}]}>
+        {["Pending", "In Process", "Delivered", "Cancelled"].map((status, index) => (
+          <Animated.View key={status} style={[styles.orderBox, { opacity: fadeAnims[index] }]}>
+            <Text style={styles.orderBoxText}>{status}</Text>
+            <View style={styles.orderBoxDataContainer}>
+            <Text style={styles.orderBoxData}>
+              {dashboardData?.[orderStatusMap[status]]}
+            </Text>
+            </View>
+          </Animated.View>
+        ))}
+      </View>
+    )}
         
         
       </ScrollView>
@@ -261,4 +313,29 @@ const styles = StyleSheet.create({
     borderRadius:10,
 
   },
+  orderBox:{
+    width:70,
+    height:70,
+    backgroundColor:"orange",
+    borderRadius:10
+  },
+  orderBoxText:{
+    textAlign:"center",
+    fontSize:12.5,
+    padding:4,
+    fontWeight:"700",
+    color:"white",
+    borderBottomWidth:2,
+    borderBottomColor:"white"
+  },
+  orderBoxDataContainer:{
+    flex:1,
+    justifyContent:"center",
+    alignItems:"center"
+  },
+  orderBoxData:{
+    fontSize:24,
+    color:"white",
+    fontWeight:'700'
+  }
 });

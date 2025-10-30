@@ -103,7 +103,7 @@ const SlidingButton = () => {
   //     disconnectWebSocket();  // Clean up WebSocket on unmount
   //   };
   // }, []);
-
+  const manuallyDisconnected = useRef(false);
   const connectWebSocket = () => {
     if (socket) return; // Prevent multiple connections
 
@@ -114,6 +114,8 @@ const SlidingButton = () => {
     ws.onopen = () => {
       console.log("Connected to WebSocket ✅");
       setLoading(false);
+      setIsOnline(true);
+      manuallyDisconnected.current = false;
       Toast.success("Online");
 
       // Send initial request to fetch orders (if needed)
@@ -123,8 +125,12 @@ const SlidingButton = () => {
     };
 
     ws.onmessage = (event) => {
-      console.log("Received WebSocket message:", event.data);
-
+      // console.log("Received WebSocket message:", event.data);
+      if (!event.data) {
+        console.error("Received null WebSocket message");
+        return;
+      }
+    
       try {
         const data = JSON.parse(event.data);
         if (data.type === "seller_orders") {
@@ -134,7 +140,7 @@ const SlidingButton = () => {
           setOrders((prev) => [data.order, ...prev]);
           playNotificationSound();
         } else if (data.type === "order_update") {
-          console.log("order received:", data);
+          // console.log("order received:", data);
           setOrders((prev) =>
             prev.map((order) =>
               order._id === data.orderData._id
@@ -159,13 +165,20 @@ const SlidingButton = () => {
     ws.onclose = () => {
       console.log("WebSocket Disconnected ❌");
       setSocket(null);
+      setIsOnline(false);
+      setLoading(false);
+      toggleConnection(false);//added newly
       Toast.info("Offline");
+      if (!manuallyDisconnected) {
+        reconnectWebSocket(); // Try reconnecting
+      }
     };
 
     setSocket(ws);
   };
 
   const disconnectWebSocket = () => {
+    manuallyDisconnected.current = true; 
     if (socket) {
       socket.close();
       setSocket(null);
@@ -174,8 +187,15 @@ const SlidingButton = () => {
     }
   };
 
+  function reconnectWebSocket() {
+    setTimeout(() => {
+        console.log("Reconnecting WebSocket...");
+        connectWebSocket();
+    }, 5000); // Retry after 5 seconds
+}
+
   const toggleConnection = (value: boolean) => {
-    setIsOnline(value);
+    // setIsOnline(value);
     if (value && !socket) {
       connectWebSocket();
     } else {
@@ -183,12 +203,20 @@ const SlidingButton = () => {
     }
   };
 
-  const toggleSwitch = () => {
+  useEffect(() => {
     Animated.timing(animation, {
-      toValue: isOnline ? 0 : 1,
+      toValue: isOnline ? 1 : 0,  // Move animation according to state
       duration: 300,
       useNativeDriver: false,
     }).start();
+  }, [isOnline]);
+
+  const toggleSwitch = () => {
+    // Animated.timing(animation, {
+    //   toValue: isOnline ? 0 : 1,
+    //   duration: 300,
+    //   useNativeDriver: false,
+    // }).start();
 
     toggleConnection(!isOnline);
   };

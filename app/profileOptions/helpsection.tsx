@@ -1,47 +1,100 @@
+import { useSpinner } from '@/context/spinnerContext';
+import { faqData, faqResponse } from '@/models/common';
 import { Entypo } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native';
 
 const HelpSection = () => {
-  const [faqs, setFaqs] = useState<any>([]);
+  const [faqs, setFaqs] = useState<faqData[]>([]);
   const [expandedIndex, setExpandedIndex] = useState(null);
-
+  const {setLoading}=useSpinner();
   useEffect(() => {
-    const dummyFaqs = [
-        {
-          title: "What is React Native?",
-          answer: "React Native is an open-source mobile application framework created by Facebook. It is used to develop applications for Android, iOS, and UWP by enabling developers to use React along with native platform capabilities."
-        },
-        {
-          title: "How do I install React Native?",
-          answer: "To install React Native, you need to have Node.js installed. Then, you can use the following command to install the React Native CLI:\n\n`npm install -g react-native-cli`"
-        },
-        {
-          title: "What is a component in React Native?",
-          answer: "A component in React Native is a reusable piece of UI. It can be a function or a class, and it returns a piece of UI code that can be reused throughout your application."
-        },
-        {
-          title: "How do I style components in React Native?",
-          answer: "In React Native, you can style components using the StyleSheet API. You create a StyleSheet object and use it to style your components.\n\n```javascript\nconst styles = StyleSheet.create({\n  container: {\n    flex: 1,\n    justifyContent: 'center',\n    alignItems: 'center',\n  },\n  text: {\n    fontSize: 16,\n    color: '#333',\n  },\n});\n```"
-        },
-        {
-          title: "What are props in React Native?",
-          answer: "Props (short for properties) are a way to pass data from parent to child components in React Native. They are used to configure components and can be accessed using `this.props` in class components or directly in function components."
-        },
-      ];
-      setFaqs(dummyFaqs);
+    FetchFaqData();
   }, []);
+
+  const FetchFaqData = () => {
+        setLoading(true);
+          fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL}/faq/get`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then((response) => {
+              
+              return response.json();
+            })
+            .then((data:faqResponse) => {
+              if (data.status) {
+                setFaqs(data?.data||[]);
+             
+              } else {
+                setFaqs([]);
+              }
+              setLoading(false);
+            })
+            .catch((error) => {
+              console.error("Error Fetching Data:", error.message);
+              setFaqs([]);
+              setLoading(false);
+            });
+            
+        };
 
   const toggleAnswer = (index:any) => {
     setExpandedIndex(expandedIndex === index ? null : index);
   };
+  const renderBoldText = (text: string) => {
+    return text.split("\n").map((line, index) => {
+      const trimmedLine = line.trim();
+  
+      // Identify different bullet levels
+      const isMainBullet = trimmedLine.startsWith("•");
+      const isSubBullet = trimmedLine.startsWith("-");
+  
+      // Extract bullet character
+      const bulletChar = isMainBullet ? "•" : isSubBullet ? "-" : "";
+  
+      // Remove bullet from the text content
+      const textWithoutBullet = bulletChar ? trimmedLine.substring(1).trim() : trimmedLine;
+  
+      // Format bold text within content
+      const formattedText = textWithoutBullet.split(/\*\*(.*?)\*\*/).map((part, i) =>
+        i % 2 === 0 ? (
+          <Text key={i}>{part}</Text>
+        ) : (
+          <Text key={i} style={{ fontWeight: "bold" }}>{part}</Text>
+        )
+      );
+  
+      return (
+        <View
+          key={index}
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            paddingLeft: isMainBullet ? 10 : isSubBullet ? 30 : 0, // More indentation for sub-bullets
+          }}
+        >
+          {bulletChar && (
+            <Text style={{ fontSize: 16, marginRight: 8, fontWeight: isSubBullet ? "300" : "bold" }}>
+              {bulletChar} {/* Show bullet point */}
+            </Text>
+          )}
+          <Text style={{ flex: 1, fontSize: 16, color: "gray" }}>{formattedText}</Text>
+        </View>
+      );
+    });
+  };
+  
+  
 
-  const renderItem = ({ item, index }:{item:any,index:any}) => (
+  const renderItem = ({ item, index }:{item:faqData,index:any}) => (
     <View style={styles.faqItem}>
       <TouchableOpacity onPress={() => toggleAnswer(index)}>
         <View style={{flexDirection:"row", justifyContent:"space-between",alignItems:"flex-start"}}>
-            <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.title}>{item.question}</Text>
             {
                 expandedIndex!==index ? 
                 (<Entypo name="triangle-down" size={24} color="black" />):
@@ -50,7 +103,7 @@ const HelpSection = () => {
         </View>
       </TouchableOpacity>
       {expandedIndex === index && (
-        <Text style={styles.answer}>{item.answer}</Text>
+        <Text style={styles.answer}>{renderBoldText(item.answer)}</Text>
       )}
     </View>
   );

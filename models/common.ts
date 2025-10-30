@@ -38,7 +38,8 @@ export interface shopDetails{
     name: string,
     shopAddress:string,
     location: string,
-    shopCategory:string[],
+    shopCategory:string,
+    subCategorys:string[],
     shopImage:string,
     openingHours:string,
     rating: number,
@@ -71,6 +72,7 @@ export interface ProductDataItem {
     category: string;
     description: string;
     price: number;
+    originalPrice?:number;
     stock: number;
     available: boolean;
 };
@@ -87,8 +89,35 @@ export interface dashboardData {
   todayOrderCount: number;
   totalMonthlyOrders:number;
   totalMonthlyAmount: number;
+  cancelledOrders: number;
+  deliveredOrders: number;
+  pendingOrders: number;
+  processedOrders: number,
+
+}
+export interface faqResponse{
+    status:boolean,
+    message:string,
+    data?:faqData[]
+}
+export interface faqData{
+    _id:string,
+    question:string,
+    answer:string
 }
 
+export interface notificationResponse{
+    status:boolean,
+    message:string,
+    data?:notificationData[]
+}
+
+export interface notificationData{
+    ShopId: number,
+    title: string,
+    message:string,
+    isRead:boolean
+}
 
   
 export interface OrderItemData {

@@ -5,7 +5,7 @@ import { Stack } from 'expo-router'
 const setting = () => {
   return (
     <>
-        <Stack.Screen options={{headerTitle:"Setting"}} />
+        <Stack.Screen options={{headerTitle:"Setting",headerShown:true}} />
         <View style={styles.container}>
           <Text style={{fontSize:18}}>Setting</Text>
         </View>

@@ -25,6 +25,7 @@ import * as FileSystem from "expo-file-system";
 import { useSpinner } from "@/context/spinnerContext";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ToastManager,{ Toast } from "toastify-react-native";
+import TimePickerScreen from "@/components/timePicker";
 
 interface formDataType {
   firstName: string;
@@ -32,7 +33,7 @@ interface formDataType {
   email:string
   shopImage: string;
   shopName: string;
-  location: string;
+  // location: string;
   openingHours: string;
   shopAddress: string;
 }
@@ -42,21 +43,23 @@ const fields: { label: string; value: keyof formDataType; placeholder: string }[
   { label: "Last Name", value: "lastName", placeholder: "Enter Name" },
   { label: "Email", value: "email", placeholder: "Enter Email" },
   { label: "Shop Name", value: "shopName", placeholder: "Enter Shop Name" },
-  { label: "Village Name", value: "location", placeholder: "Enter location" },
-  { label: "Opening Hours", value: "openingHours", placeholder: "Enter Name" },
+  // { label: "Village Name", value: "location", placeholder: "Enter location" },
+  // { label: "Opening Hours", value: "openingHours", placeholder: "Enter Name" },
   { label: "Shop Address", value: "shopAddress", placeholder: "Enter Name" },
 ];
 
 const EditProfile = () => {
   const route = useRouter();
   const [shopCategoryList, setShopCategoryList] = useState<MasterDataItem[]>([]);
+  const [openTime,setOpenTime]=useState<string|null>(null)
+  const [closeTime,setCloseTime]=useState<string|null>(null)
   const [data, setData] = useState<formDataType>({
     firstName: "",
     lastName: "",
     email:"",
     shopImage: "",
     shopName: "",
-    location: "",
+    // location: "",
     openingHours: "",
     shopAddress: "",
   });
@@ -172,11 +175,13 @@ const EditProfile = () => {
       email:profileData?.email||"",
       shopImage: ShopDetails?.shopImage || "",
       shopName: ShopDetails?.name || "",
-      location: ShopDetails?.location || "",
+      // location: ShopDetails?.location || "",
       openingHours: ShopDetails?.openingHours || "",
       shopAddress: ShopDetails?.shopAddress || "",
     });
     setShopCategory(ShopDetails?.shopCategory || []);  // Set initial selected categories
+    setOpenTime(ShopDetails?.openingHours?.split("-")[0]||null);
+    setCloseTime(ShopDetails?.openingHours?.split("-")[1]||null);
     
   }, [profileData, ShopDetails]);
 
@@ -208,8 +213,8 @@ const EditProfile = () => {
       !data.email.trim() ||
       !data.shopName.trim() ||
       !data.shopAddress.trim() ||
-      !data.openingHours.trim() ||
-      !data.location.trim() 
+      !data.openingHours.trim() 
+      // !data.location.trim() 
     ) {
       Toast.warn("Fill all the fields")
       return;
@@ -220,8 +225,8 @@ const EditProfile = () => {
         lastName:data.lastName,
         email:data.email,
         name:data.shopName,
-        location:data.location,
-        openingHours:data.openingHours,
+        // location:data.location,
+        openingHours:`${openTime}-${closeTime}`,
         shopAddress:data.shopAddress,
         shopCategory:shopCategory,
         shopImage:data.shopImage
@@ -236,8 +241,8 @@ const EditProfile = () => {
             lastName:data.lastName,
             email:data.email,
             name:data.shopName,
-            location:data.location,
-            openingHours:data.openingHours,
+            // location:data.location,
+            openingHours:`${openTime}-${closeTime}`,
             shopAddress:data.shopAddress,
             shopCategory:shopCategory,
             shopImage:imageUrl
@@ -339,6 +344,8 @@ const EditProfile = () => {
                   </View>
                 </View>
               ))}
+
+              <TimePickerScreen openingTime={openTime} closingTime={closeTime} onChangeOpenTime={setOpenTime} onChangeCloseTime={setCloseTime} extraStyles={{fontSize: 20,}}/>
 
               {/* Adding MultiSelect for Shop Category */}
               <View style={styles.formSection}>

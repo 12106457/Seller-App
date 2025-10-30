@@ -57,18 +57,18 @@ const page = () => {
           {/* Parent container for row layout */}
           <View style={styles.statsContainer}>
             <View style={styles.statsItem}>
-              <Text style={styles.statsLabel}>Orders</Text>
+              <Text style={styles.statsLabel}>Total Orders</Text>
               <Text style={styles.statsValue}>360</Text>
             </View>
 
             <View style={styles.statsItem}>
-              <Text style={styles.statsLabel}>This Month Earnings</Text>
+              <Text style={styles.statsLabel}>Total Earnings</Text>
               <Text style={styles.statsValue}>238</Text>
             </View>
 
             <View style={styles.statsItem}>
               <Text style={styles.statsLabel}>Rating</Text>
-              <Text style={styles.statsValue}>427</Text>
+              <Text style={styles.statsValue}>{ShopDetails?.rating.toFixed(1)}</Text>
             </View>
           </View>
         </View>

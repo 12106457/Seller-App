@@ -19,10 +19,13 @@ interface userProfileType {
 interface shopRegisterType {
   name: string;
   shopAddress: string;
-  location: string;
+  // location: string;
   shopImage: string;
   openingHours: string;
-  shopCategory?: string[];
+  shopCategory?: string;
+  subCategorys?:string[];
+  latitude:number,
+  longitude:number,
 }
 const Register = () => {
   const [step, setStep] = useState(1);
@@ -42,7 +45,7 @@ const Register = () => {
   },[shopRegister])
 
   const handleCreateUserProfile = (params: userProfileType) => {
-    // console.log("userProfile Data:", params);
+    console.log("userProfile Data:", params);
     setLoading(true);
     fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL}/auth/register`, {
       method: "POST",
@@ -63,6 +66,7 @@ const Register = () => {
         return response.json();
       })
       .then((data: RegisterResponse) => {
+        console.log("Register Response:", data);
         setLoading(false);
         if (data.status) {
           setUserId(data.data._id);
@@ -79,7 +83,7 @@ const Register = () => {
       });
   };
   const handleRegisterShop = (params: shopRegisterType) => {
-    // console.log("shopRegister Data:", params);
+    console.log("shopRegister Data:", params);
     setLoading(true);
     fetch(
       `${process.env.EXPO_PUBLIC_API_BASE_URL}/shop/add/${userId}`,

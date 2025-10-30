@@ -117,15 +117,15 @@ const OrderDetailsModal = ({ isVisible, onClose, order, changeStatue }: propType
              </TouchableOpacity>
           }
           {
-            order?.status==="Shipped" &&<TouchableOpacity style={styles.deliveredButton} onPress={() => changeStatue("Delivered", order?.orderNo)}>
+            (order?.status==="Shipped"||order?.status==="Processed") &&<TouchableOpacity style={styles.deliveredButton} onPress={() => changeStatue("Delivered", order?.orderNo)}>
                 <Text style={styles.buttonText}>Delivered</Text>
             </TouchableOpacity>
           }
-          {
-            order?.status==="Pending"||order?.status==="Processed"||order?.status==="Shipped" &&<TouchableOpacity style={styles.cancelButton} onPress={() => changeStatue("Cancelled", order?.orderNo)}>
+         {(order?.status === "Pending" || order?.status === "Processed" || order?.status === "Shipped") && (
+            <TouchableOpacity style={styles.cancelButton} onPress={() => changeStatue("Cancelled", order?.orderNo)}>
                 <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
-          }
+         )}
            {
             order?.status==="Cancelled" &&<View style={[styles.cancelButton,{opacity:0.9}]} >
                 <Text style={styles.buttonText}>Cancelled</Text>
